@@ -57,11 +57,8 @@ func (uc *ProductService) UpdateProduct(ctx context.Context) (result entity.Wall
 	return result, err
 }
 
-func (uc *ProductService) ViewProduct(ctx context.Context) (result entity.Wallet, err error) {
-	result, err = uc.ProductRepo.GetWalletByUserId(ctx, "productid")
-	if helper.IsStructEmpty(result) || result.Status == helper.ConstantDisabled {
-		return result, errors.New("wallet disabled")
-	}
+func (uc *ProductService) ViewProduct(ctx context.Context) (result []entity.Product, err error) {
+	result, err = uc.ProductRepo.GetProducts(ctx)
 
 	return result, err
 }

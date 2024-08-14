@@ -19,6 +19,7 @@ type Repo struct {
 type ProductRepo interface {
 	CreateProduct(ctx context.Context, product entity.Product) (result entity.Product, err error)
 	UpdateStatusByUserId(ctx context.Context, status string, userId string) (updatedAt time.Time, err error)
+	GetProducts(ctx context.Context) (result []entity.Product, err error)
 	GetWalletByUserId(ctx context.Context, userId string) (result entity.Wallet, err error)
 }
 
@@ -61,6 +62,24 @@ func (r *Repo) CreateProduct(ctx context.Context, product entity.Product) (resul
 		ProductRating:      product.ProductRating,
 		ProductStock:       product.ProductStock,
 	}
+	return result, nil
+}
+
+func (r *Repo) GetProducts(ctx context.Context) (result []entity.Product, err error) {
+	rows, err := r.db.Query("SELECT id, name, description, price, variety, rating, stock FROM mst_product")
+	if err != nil {
+		return result, err
+	}
+
+	for rows.Next() {
+		product := &entity.Product{}
+		err = rows.Scan(&product.ProductID, &product.ProductName, &product.ProductDescription, &product.ProductPrice, &product.ProductVariety, &product.ProductRating, &product.ProductStock)
+		if err != nil {
+			return result, err
+		}
+		result = append(result, *product)
+	}
+
 	return result, nil
 }
 
