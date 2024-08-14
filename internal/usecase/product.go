@@ -17,7 +17,7 @@ type ProductServiceProvider interface {
 	CreateProduct(ctx context.Context, product entity.Product) (result entity.Product, err error)
 	UpdateProduct(ctx context.Context) (result entity.Wallet, err error)
 	ViewProduct(ctx context.Context) (result entity.Wallet, err error)
-	DeleteProduct(ctx context.Context) (result entity.Wallet, err error)
+	DeleteProduct(ctx context.Context, id int64) (err error)
 }
 
 func NewProductService(ProductRepo repo.ProductRepo) ProductService {
@@ -63,25 +63,9 @@ func (uc *ProductService) ViewProduct(ctx context.Context) (result []entity.Prod
 	return result, err
 }
 
-func (uc *ProductService) DeleteProduct(ctx context.Context) (result entity.Wallet, err error) {
+func (uc *ProductService) DeleteProduct(ctx context.Context, id int64) error {
 	// get wallet.
-	result, err = uc.ProductRepo.GetWalletByUserId(ctx, "productid")
-	if helper.IsStructEmpty(result) || result.Status == helper.ConstantDisabled {
-		return result, errors.New("wallet not found or wallet already disabled")
-	}
+	err := uc.ProductRepo.DeleteProductByProductID(ctx, id)
 
-	if err != nil {
-		return result, err
-	}
-
-	//disable wallet
-	updatedAt, err := uc.ProductRepo.UpdateStatusByUserId(ctx, helper.ConstantDisabled, "productid")
-	if err != nil {
-		return result, err
-	}
-
-	result.Status = helper.ConstantDisabled
-	result.DisabledAt = &updatedAt
-
-	return result, err
+	return err
 }

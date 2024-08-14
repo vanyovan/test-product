@@ -21,6 +21,7 @@ type ProductRepo interface {
 	UpdateStatusByUserId(ctx context.Context, status string, userId string) (updatedAt time.Time, err error)
 	GetProducts(ctx context.Context) (result []entity.Product, err error)
 	GetWalletByUserId(ctx context.Context, userId string) (result entity.Wallet, err error)
+	DeleteProductByProductID(ctx context.Context, id int64) (err error)
 }
 
 func NewProductRepo(db *sql.DB) ProductRepo {
@@ -81,6 +82,26 @@ func (r *Repo) GetProducts(ctx context.Context) (result []entity.Product, err er
 	}
 
 	return result, nil
+}
+
+func (r *Repo) DeleteProductByProductID(ctx context.Context, id int64) error {
+	query := "DELETE FROM mst_product WHERE id = ?"
+
+    result, err := r.db.ExecContext(ctx, query, id)
+    if err != nil {
+        return fmt.Errorf("could not delete product: %w", err)
+    }
+
+    rowsAffected, err := result.RowsAffected()
+    if err != nil {
+        return fmt.Errorf("could not determine number of rows affected: %w", err)
+    }
+
+    if rowsAffected == 0 {
+        return fmt.Errorf("no product found with ID %d", id)
+    }
+
+    return nil
 }
 
 func (r *Repo) GetWalletByUserId(ctx context.Context, userId string) (result entity.Wallet, err error) {
