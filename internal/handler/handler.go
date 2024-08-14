@@ -94,6 +94,18 @@ func (h *Handler) HandleDeleteProduct(w http.ResponseWriter, r *http.Request) {
 
 	param := segments[4]
 
+	if param == ""{
+		w.Header().Set("Content-Type", "application/json")
+        w.WriteHeader(http.StatusBadRequest)
+        json.NewEncoder(w).Encode(map[string]interface{}{
+            "status": "fail",
+            "data": map[string]interface{}{
+                "error": "param not found",
+            },
+        })
+        return
+	}
+
     productId, err := strconv.ParseInt(param, 10, 64)
     if err != nil {
         w.Header().Set("Content-Type", "application/json")
