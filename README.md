@@ -39,6 +39,9 @@ The following API endpoints are available:
 - `PATCH /api/v1/product/{id}`: Update product.
 - `DELETE /api/v1/product/{id}`: Delete product.
 
+## API Collection
+You can use **product.postman_collection.json** to import the API collection.
+
 ## Database
 
 The application uses an SQLite3 database named **database.db**. The database contains the following tables:
