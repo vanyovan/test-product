@@ -122,6 +122,10 @@ func (r *Repo) UpdateProductByProductID(ctx context.Context, id int64, product e
         query += " variety = ?,"
         args = append(args, product.ProductVariety)
     }
+	if &product.ProductRating != nil {
+        query += " rating = ?,"
+        args = append(args, product.ProductRating)
+    }
 	if &product.ProductStock != nil {
         query += " stock = ?,"
         args = append(args, product.ProductStock)
