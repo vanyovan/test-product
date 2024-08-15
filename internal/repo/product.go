@@ -42,7 +42,7 @@ func (r *Repo) CreateProduct(ctx context.Context, product entity.Product) (resul
 		product.ProductName, product.ProductDescription, product.ProductPrice, product.ProductVariety, product.ProductRating, product.ProductStock)
 	if err != nil {
 		tx.Rollback()
-		return result, fmt.Errorf("failed to create wallet: %w", err)
+		return result, fmt.Errorf("failed to create product: %w", err)
 	}
 	err = tx.Commit()
 	if err != nil {
@@ -85,56 +85,55 @@ func (r *Repo) GetProducts(ctx context.Context) (result []entity.Product, err er
 func (r *Repo) DeleteProductByProductID(ctx context.Context, id int64) error {
 	query := "DELETE FROM mst_product WHERE id = ?"
 
-    result, err := r.db.ExecContext(ctx, query, id)
-    if err != nil {
-        return fmt.Errorf("could not delete product: %w", err)
-    }
+	result, err := r.db.ExecContext(ctx, query, id)
+	if err != nil {
+		return fmt.Errorf("could not delete product: %w", err)
+	}
 
-    rowsAffected, err := result.RowsAffected()
-    if err != nil {
-        return fmt.Errorf("could not determine number of rows affected: %w", err)
-    }
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("could not determine number of rows affected: %w", err)
+	}
 
-    if rowsAffected == 0 {
-        return fmt.Errorf("no product found with ID %d", id)
-    }
+	if rowsAffected == 0 {
+		return fmt.Errorf("no product found with ID %d", id)
+	}
 
-    return nil
+	return nil
 }
 
 func (r *Repo) UpdateProductByProductID(ctx context.Context, id int64, product entity.Product) error {
 	query := "UPDATE mst_product SET"
 	var args []interface{}
 
-	if &product.ProductName != nil {
-        query += " name = ?,"
-        args = append(args, product.ProductName)
-    }
-    if &product.ProductDescription != nil {
-        query += " description = ?,"
-        args = append(args, product.ProductDescription)
-    }
-    if &product.ProductPrice != nil {
-        query += " price = ?,"
-        args = append(args, product.ProductPrice)
-    }
-	if &product.ProductVariety != nil {
-        query += " variety = ?,"
-        args = append(args, product.ProductVariety)
-    }
-	if &product.ProductRating != nil {
-        query += " rating = ?,"
-        args = append(args, product.ProductRating)
-    }
-	if &product.ProductStock != nil {
-        query += " stock = ?,"
-        args = append(args, product.ProductStock)
-    }
+	if product.ProductName != "" {
+		query += " name = ?,"
+		args = append(args, product.ProductName)
+	}
+	if product.ProductDescription != "" {
+		query += " description = ?,"
+		args = append(args, product.ProductDescription)
+	}
+	if product.ProductPrice != -1 {
+		query += " price = ?,"
+		args = append(args, product.ProductPrice)
+	}
+	if product.ProductVariety != "" {
+		query += " variety = ?,"
+		args = append(args, product.ProductVariety)
+	}
+	if product.ProductRating != -1 {
+		query += " rating = ?,"
+		args = append(args, product.ProductRating)
+	}
+	if product.ProductStock != -1 {
+		query += " stock = ?,"
+		args = append(args, product.ProductStock)
+	}
 
 	query = strings.TrimSuffix(query, ",")
 	query += " WHERE id = ?"
 	args = append(args, id)
-
 
 	tx, err := r.db.Begin()
 	if err != nil {
@@ -147,7 +146,7 @@ func (r *Repo) UpdateProductByProductID(ctx context.Context, id int64, product e
 		tx.Rollback()
 		return fmt.Errorf("failed to update transaction: %w", err)
 	}
-	
+
 	err = tx.Commit()
 	if err != nil {
 		tx.Rollback()
@@ -155,13 +154,13 @@ func (r *Repo) UpdateProductByProductID(ctx context.Context, id int64, product e
 	}
 
 	rowsAffected, err := result.RowsAffected()
-    if err != nil {
-        return fmt.Errorf("could not determine number of rows affected: %w", err)
-    }
+	if err != nil {
+		return fmt.Errorf("could not determine number of rows affected: %w", err)
+	}
 
-    if rowsAffected == 0 {
-        return fmt.Errorf("no product found with ID %d", id)
-    }
+	if rowsAffected == 0 {
+		return fmt.Errorf("no product found with ID %d", id)
+	}
 
 	return nil
 }

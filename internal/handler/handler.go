@@ -90,86 +90,85 @@ func (h *Handler) HandleViewProduct(w http.ResponseWriter, r *http.Request) {
 
 func (h *Handler) HandleDeleteProduct(w http.ResponseWriter, r *http.Request) {
 	path := r.URL.Path
-    segments := strings.Split(path, "/")
+	segments := strings.Split(path, "/")
 
 	param := segments[4]
 
-	if param == ""{
+	if param == "" {
 		w.Header().Set("Content-Type", "application/json")
-        w.WriteHeader(http.StatusBadRequest)
-        json.NewEncoder(w).Encode(map[string]interface{}{
-            "status": "fail",
-            "data": map[string]interface{}{
-                "error": "param not found",
-            },
-        })
-        return
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"status": "fail",
+			"data": map[string]interface{}{
+				"error": "param not found",
+			},
+		})
+		return
 	}
 
-    productId, err := strconv.ParseInt(param, 10, 64)
-    if err != nil {
-        w.Header().Set("Content-Type", "application/json")
-        w.WriteHeader(http.StatusBadRequest)
-        json.NewEncoder(w).Encode(map[string]interface{}{
-            "status": "fail",
-            "data": map[string]interface{}{
-                "error": err.Error(),
-            },
-        })
-        return
-    }
+	productId, err := strconv.ParseInt(param, 10, 64)
+	if err != nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"status": "fail",
+			"data": map[string]interface{}{
+				"error": err.Error(),
+			},
+		})
+		return
+	}
 
-    err = h.ProductUsecase.DeleteProduct(r.Context(), productId)
-    if err != nil {
-        w.Header().Set("Content-Type", "application/json")
-        w.WriteHeader(http.StatusBadRequest)
-        json.NewEncoder(w).Encode(map[string]interface{}{
-            "status": "fail",
-            "data": map[string]interface{}{
-                "error": err.Error(),
-            },
-        })
-        return
-    }
+	err = h.ProductUsecase.DeleteProduct(r.Context(), productId)
+	if err != nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"status": "fail",
+			"data": map[string]interface{}{
+				"error": err.Error(),
+			},
+		})
+		return
+	}
 
-    w.Header().Set("Content-Type", "application/json")
-    w.WriteHeader(http.StatusOK)
-    json.NewEncoder(w).Encode(map[string]interface{}{
-        "status": "success",
-    })
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"status": "success",
+	})
 }
-
 
 func (h *Handler) HandleUpdateProduct(w http.ResponseWriter, r *http.Request) {
 	path := r.URL.Path
-    segments := strings.Split(path, "/")
+	segments := strings.Split(path, "/")
 
 	param := segments[4]
 
-	if param == ""{
+	if param == "" {
 		w.Header().Set("Content-Type", "application/json")
-        w.WriteHeader(http.StatusBadRequest)
-        json.NewEncoder(w).Encode(map[string]interface{}{
-            "status": "fail",
-            "data": map[string]interface{}{
-                "error": "param not found",
-            },
-        })
-        return
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"status": "fail",
+			"data": map[string]interface{}{
+				"error": "param not found",
+			},
+		})
+		return
 	}
 
-    productId, err := strconv.ParseInt(param, 10, 64)
-    if err != nil {
-        w.Header().Set("Content-Type", "application/json")
-        w.WriteHeader(http.StatusBadRequest)
-        json.NewEncoder(w).Encode(map[string]interface{}{
-            "status": "fail",
-            "data": map[string]interface{}{
-                "error": err.Error(),
-            },
-        })
-        return
-    }
+	productId, err := strconv.ParseInt(param, 10, 64)
+	if err != nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"status": "fail",
+			"data": map[string]interface{}{
+				"error": err.Error(),
+			},
+		})
+		return
+	}
 
 	request := UpdateProductRequest{}
 	err = json.NewDecoder(r.Body).Decode(&request)
