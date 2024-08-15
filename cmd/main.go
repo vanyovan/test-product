@@ -3,6 +3,7 @@ package main
 import (
 	"database/sql"
 	"fmt"
+	"log"
 	"net/http"
 	"os"
 	"regexp"
@@ -15,12 +16,33 @@ import (
 	"github.com/vanyovan/test-product.git/internal/usecase"
 )
 
+func initializeDatabase(db *sql.DB) {
+	schema := `
+    CREATE TABLE mst_product (
+		id INTEGER PRIMARY KEY AUTOINCREMENT,
+		name TEXT,
+		description TEXT,
+		price REAL,
+		variety TEXT,
+		rating REAL,
+		stock INTEGER
+	);
+    `
+	_, err := db.Exec(schema)
+	if err != nil {
+		log.Fatalf("Failed to initialize database schema: %v", err)
+	}
+}
+
 func main() {
 	db, err := sql.Open("sqlite3", getRootDirectory()+"/database.db")
+
 	if err != nil {
 		panic(err)
 	}
 	defer db.Close()
+
+	initializeDatabase(db)
 
 	productRepo := repo.NewProductRepo(db)
 

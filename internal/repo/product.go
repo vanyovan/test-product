@@ -33,6 +33,7 @@ func (r *Repo) CreateProduct(ctx context.Context, product entity.Product) (resul
 	if tx == nil || err != nil {
 		tx, err = r.db.Begin()
 		if err != nil {
+			fmt.Println("ERROR 21", err)
 			tx.Rollback()
 			return result, errors.New("failed to begin database transaction")
 		}
