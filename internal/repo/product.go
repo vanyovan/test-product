@@ -152,12 +152,7 @@ func (r *Repo) UpdateProductByProductID(ctx context.Context, id int64, product e
 		tx.Rollback()
 		return errors.New("failed to commit database transaction")
 	}
-
-	rowsAffected, err := result.RowsAffected()
-    if err != nil {
-        return fmt.Errorf("could not determine number of rows affected: %w", err)
-    }
-
+	
     if rowsAffected == 0 {
         return fmt.Errorf("no product found with ID %d", id)
     }

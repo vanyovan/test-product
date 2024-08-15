@@ -26,9 +26,7 @@ func NewProductService(ProductRepo repo.ProductRepo) ProductService {
 
 func (uc *ProductService) CreateProduct(ctx context.Context, product entity.Product) (result entity.Product, err error) {
 	result, err = uc.ProductRepo.CreateProduct(ctx, product)
-	if err != nil {
-		return result, err
-	}
+	
 	return result, err
 }
 
