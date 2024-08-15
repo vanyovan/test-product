@@ -2,10 +2,8 @@ package usecase
 
 import (
 	"context"
-	"errors"
 
 	"github.com/vanyovan/test-product.git/internal/entity"
-	"github.com/vanyovan/test-product.git/internal/helper"
 	"github.com/vanyovan/test-product.git/internal/repo"
 )
 
@@ -15,7 +13,7 @@ type ProductService struct {
 
 type ProductServiceProvider interface {
 	CreateProduct(ctx context.Context, product entity.Product) (result entity.Product, err error)
-	UpdateProduct(ctx context.Context) (result entity.Wallet, err error)
+	UpdateProduct(ctx context.Context, id int64, product entity.Product) (result entity.Wallet, err error)
 	ViewProduct(ctx context.Context) (result entity.Wallet, err error)
 	DeleteProduct(ctx context.Context, id int64) (err error)
 }
@@ -34,27 +32,10 @@ func (uc *ProductService) CreateProduct(ctx context.Context, product entity.Prod
 	return result, err
 }
 
-func (uc *ProductService) UpdateProduct(ctx context.Context) (result entity.Wallet, err error) {
-	// get wallet.
-	result, err = uc.ProductRepo.GetWalletByUserId(ctx, "productid")
-	if helper.IsStructEmpty(result) || result.Status == helper.ConstantDisabled {
-		return result, errors.New("wallet not found or wallet already disabled")
-	}
+func (uc *ProductService) UpdateProduct(ctx context.Context, id int64, product entity.Product) error{
+	err := uc.ProductRepo.UpdateProductByProductID(ctx, id, product)
 
-	if err != nil {
-		return result, err
-	}
-
-	//disable wallet
-	updatedAt, err := uc.ProductRepo.UpdateStatusByUserId(ctx, helper.ConstantDisabled, "productid")
-	if err != nil {
-		return result, err
-	}
-
-	result.Status = helper.ConstantDisabled
-	result.DisabledAt = &updatedAt
-
-	return result, err
+	return err
 }
 
 func (uc *ProductService) ViewProduct(ctx context.Context) (result []entity.Product, err error) {
@@ -64,7 +45,6 @@ func (uc *ProductService) ViewProduct(ctx context.Context) (result []entity.Prod
 }
 
 func (uc *ProductService) DeleteProduct(ctx context.Context, id int64) error {
-	// get wallet.
 	err := uc.ProductRepo.DeleteProductByProductID(ctx, id)
 
 	return err

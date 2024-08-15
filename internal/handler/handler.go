@@ -141,7 +141,60 @@ func (h *Handler) HandleDeleteProduct(w http.ResponseWriter, r *http.Request) {
 
 
 func (h *Handler) HandleUpdateProduct(w http.ResponseWriter, r *http.Request) {
-	result, err := h.ProductUsecase.UpdateProduct(r.Context())
+	path := r.URL.Path
+    segments := strings.Split(path, "/")
+
+	param := segments[4]
+
+	if param == ""{
+		w.Header().Set("Content-Type", "application/json")
+        w.WriteHeader(http.StatusBadRequest)
+        json.NewEncoder(w).Encode(map[string]interface{}{
+            "status": "fail",
+            "data": map[string]interface{}{
+                "error": "param not found",
+            },
+        })
+        return
+	}
+
+    productId, err := strconv.ParseInt(param, 10, 64)
+    if err != nil {
+        w.Header().Set("Content-Type", "application/json")
+        w.WriteHeader(http.StatusBadRequest)
+        json.NewEncoder(w).Encode(map[string]interface{}{
+            "status": "fail",
+            "data": map[string]interface{}{
+                "error": err.Error(),
+            },
+        })
+        return
+    }
+
+	request := UpdateProductRequest{}
+	err = json.NewDecoder(r.Body).Decode(&request)
+	if err != nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"status": "fail",
+			"data": map[string]interface{}{
+				"error": err.Error(),
+			},
+		})
+		return
+	}
+
+	product := entity.Product{
+		ProductName:        request.ProductName,
+		ProductDescription: request.ProductDescription,
+		ProductPrice:       request.ProductPrice,
+		ProductVariety:     request.ProductVariety,
+		ProductRating:      request.ProductRating,
+		ProductStock:       request.ProductStock,
+	}
+
+	err = h.ProductUsecase.UpdateProduct(r.Context(), productId, product)
 	if err != nil {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusBadRequest)
@@ -158,6 +211,5 @@ func (h *Handler) HandleUpdateProduct(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(map[string]interface{}{
 		"status": "success",
-		"data":   result,
 	})
 }

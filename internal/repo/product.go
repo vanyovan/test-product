@@ -5,11 +5,9 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"time"
+	"strings"
 
 	"github.com/vanyovan/test-product.git/internal/entity"
-	"github.com/vanyovan/test-product.git/internal/helper"
-	"github.com/vanyovan/test-product.git/internal/repo/wrapper"
 )
 
 type Repo struct {
@@ -18,10 +16,9 @@ type Repo struct {
 
 type ProductRepo interface {
 	CreateProduct(ctx context.Context, product entity.Product) (result entity.Product, err error)
-	UpdateStatusByUserId(ctx context.Context, status string, userId string) (updatedAt time.Time, err error)
 	GetProducts(ctx context.Context) (result []entity.Product, err error)
-	GetWalletByUserId(ctx context.Context, userId string) (result entity.Wallet, err error)
 	DeleteProductByProductID(ctx context.Context, id int64) (err error)
+	UpdateProductByProductID(ctx context.Context, id int64, product entity.Product) (err error)
 }
 
 func NewProductRepo(db *sql.DB) ProductRepo {
@@ -31,7 +28,8 @@ func NewProductRepo(db *sql.DB) ProductRepo {
 }
 
 func (r *Repo) CreateProduct(ctx context.Context, product entity.Product) (result entity.Product, err error) {
-	tx, err := wrapper.FromContext(ctx)
+	ctx = context.Background()
+	tx, err := r.db.BeginTx(ctx, nil)
 	if tx == nil || err != nil {
 		tx, err = r.db.Begin()
 		if err != nil {
@@ -104,47 +102,61 @@ func (r *Repo) DeleteProductByProductID(ctx context.Context, id int64) error {
     return nil
 }
 
-func (r *Repo) GetWalletByUserId(ctx context.Context, userId string) (result entity.Wallet, err error) {
-	query := "SELECT wallet_id, owned_by, status, enabled_at, disabled_at, balance FROM mst_wallet WHERE owned_by = ?"
-	row := r.db.QueryRow(query, userId)
-	result = entity.Wallet{}
-	err = row.Scan(&result.WalletId, &result.OwnedBy, &result.Status, &result.EnabledAt, &result.DisabledAt, &result.Balance)
-	if err != nil {
-		if err == sql.ErrNoRows {
-			return result, nil
-		} else {
-			fmt.Println("Failed to retrieve row:", err)
-		}
-		return result, err
-	}
-	return result, nil
-}
+func (r *Repo) UpdateProductByProductID(ctx context.Context, id int64, product entity.Product) error {
+	query := "UPDATE mst_product SET"
+	var args []interface{}
 
-func (r *Repo) UpdateStatusByUserId(ctx context.Context, status string, userId string) (updatedAt time.Time, err error) {
-	tx, err := wrapper.FromContext(ctx)
-	if tx == nil || err != nil {
-		tx, err = r.db.Begin()
-		if err != nil {
-			tx.Rollback()
-			return time.Time{}, errors.New("failed to begin database transaction")
-		}
-	}
+	if &product.ProductName != nil {
+        query += " name = ?,"
+        args = append(args, product.ProductName)
+    }
+    if &product.ProductDescription != nil {
+        query += " description = ?,"
+        args = append(args, product.ProductDescription)
+    }
+    if &product.ProductPrice != nil {
+        query += " price = ?,"
+        args = append(args, product.ProductPrice)
+    }
+	if &product.ProductVariety != nil {
+        query += " variety = ?,"
+        args = append(args, product.ProductVariety)
+    }
+	if &product.ProductStock != nil {
+        query += " stock = ?,"
+        args = append(args, product.ProductStock)
+    }
 
-	timeNow := time.Now()
-	if status == helper.ConstantEnabled {
-		_, err = tx.Exec("UPDATE mst_wallet set status = ?, enabled_at = ? where owned_by = ?", status, timeNow, userId)
-	} else {
-		_, err = tx.Exec("UPDATE mst_wallet set status = ?, disabled_at = ? where owned_by = ?", status, timeNow, userId)
-	}
+	query = strings.TrimSuffix(query, ",")
+	query += " WHERE id = ?"
+	args = append(args, id)
+
+
+	tx, err := r.db.Begin()
 	if err != nil {
 		tx.Rollback()
-		return time.Time{}, fmt.Errorf("failed to update wallet: %w", err)
+		return errors.New("failed to begin database transaction")
+	}
+
+	result, err := tx.ExecContext(ctx, query, args...)
+	if err != nil {
+		tx.Rollback()
+		return fmt.Errorf("failed to update transaction: %w", err)
 	}
 	err = tx.Commit()
 	if err != nil {
 		tx.Rollback()
-		return time.Time{}, errors.New("failed to commit database transaction")
+		return errors.New("failed to commit database transaction")
 	}
 
-	return timeNow, nil
+	rowsAffected, err := result.RowsAffected()
+    if err != nil {
+        return fmt.Errorf("could not determine number of rows affected: %w", err)
+    }
+
+    if rowsAffected == 0 {
+        return fmt.Errorf("no product found with ID %d", id)
+    }
+
+	return nil
 }

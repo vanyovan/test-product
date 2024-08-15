@@ -34,7 +34,7 @@ func main() {
 		r.Method(http.MethodPost, "/api/v1/product", http.HandlerFunc(handler.HandleCreateProduct))   //create product
 		r.Method(http.MethodGet, "/api/v1/product", http.HandlerFunc(handler.HandleViewProduct))      //read product
 		r.Method(http.MethodDelete, "/api/v1/product/{id}", http.HandlerFunc(handler.HandleDeleteProduct)) //delete product
-		r.Method(http.MethodPatch, "/api/v1/product", http.HandlerFunc(handler.HandleUpdateProduct))  //update product
+		r.Method(http.MethodPatch, "/api/v1/product/{id}", http.HandlerFunc(handler.HandleUpdateProduct))  //update product
 	})
 
 	server := &http.Server{
